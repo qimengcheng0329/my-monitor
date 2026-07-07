@@ -1,0 +1,26 @@
+name: 24小时全自动监控巡逻
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # 每30分钟自动叫醒一次虚拟电脑
+  workflow_dispatch:      # 允许你在网页上点击按钮手动触发
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查并拉取网盘中的代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python 运行环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 自动安装依赖组件与谷歌浏览器核
+        run: |
+          pip install playwright httpx
+          playwright install chromium
+
+      - name: 启动特工巡逻脚本
+        run: python monitor.py
