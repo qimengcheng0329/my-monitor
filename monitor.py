@@ -158,8 +158,9 @@ async def extract_items(page: Page, target: Target) -> list[dict[str, str]]:
 
 
 async def push_webhook(webhook_url: str, payload: dict[str, Any]) -> None:
+    # 新版安全补丁：如果用户没配网址，直接在日志打印，绝不崩溃报错
     if "这里填你真实的" in webhook_url or not webhook_url.startswith("http"):
-        LOG.warning("提示：未检测到有效通知通道，抓取结果将在本地打印，不向手机推送。")
+        LOG.info("【系统提示】检测到暂未配置有效的手机Webhook通知，本次抓取数据已成功在下方控制台打印。")
         return
 
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -167,8 +168,9 @@ async def push_webhook(webhook_url: str, payload: dict[str, Any]) -> None:
             resp = await client.post(webhook_url, json=payload)
             resp.raise_for_status()
             LOG.info("【通知】手机端通知推送成功！")
-        except httpx.HTTPError:
-            LOG.exception("【通知】Webhook 推送失败，请检查配置")
+        except Exception as e:
+            LOG.warning("【通知】Webhook 推送失败，但不影响程序继续运行: %s", e)
+
 
 
 async def audit_single_target(browser: Browser, target: Target) -> None:
