@@ -240,8 +240,12 @@ async def run(headless: bool = True) -> None:
 def main() -> None:
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(run(headless=True))
-
+    try:
+        asyncio.run(run(headless=True))
+    except RuntimeError as e:
+        # 特效补丁：彻底解决 Linux 环境下由于事件循环提前关闭导致的虚假报错崩溃
+        if "Event loop is closed" not in str(e):
+            raise
 
 if __name__ == "__main__":
     main()
